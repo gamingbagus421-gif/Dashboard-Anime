@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anime Character Vault | Interactive Showcase</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        sakura: {
+                            50: '#fff5f7',
+                            100: '#ffe3ec',
+                            200: '#fcc2d7',
+                            300: '#faa2c1',
+                            400: '#f783ac',
+                            500: '#f06595',
+                            600: '#e64980',
+                            700: '#d6336c',
+                        },
+                        slime: {
+                            400: '#38bdf8',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                        },
+                        witch: {
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
+                        jp: ['M PLUS Rounded 1c', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.4);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.7);
+        }
+
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sakura Floating Keyframe Animation */
+        @keyframes float-sakura {
+            0% {
+                transform: translateY(-10vh) rotate(0deg) translateX(0px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(105vh) rotate(360deg) translateX(100px);
+                opacity: 0.2;
+            }
+        }
+
+        .sakura-petal {
+            position: fixed;
+            top: -5%;
+            pointer-events: none;
+            z-index: 1;
+            animation: float-sakura linear infinite;
+        }
+
+        /* Glow effects */
+        .glow-slime {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+        }
+        .glow-witch {
+            box-shadow: 0 0 25px rgba(192, 132, 252, 0.35);
+        }
+
+        /* Pulse aura animation */
+        @keyframes aura-pulse {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.03); }
+        }
+        .animate-aura {
+            animation: aura-pulse 4s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-pink-50 to-purple-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 min-h-screen font-sans antialiased transition-colors duration-500 relative overflow-x-hidden">
+
+    <!-- Sakura Petals Overlay Canvas / Container -->
+    <div id="sakura-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- Background Ambient Glow -->
+    <div id="bg-glow" class="fixed -top-32 -left-32 w-96 h-96 rounded-full bg-sky-500/20 dark:bg-sky-500/10 blur-3xl pointer-events-none transition-all duration-700"></div>
+    <div id="bg-glow-secondary" class="fixed -bottom-32 -right-32 w-96 h-96 rounded-full bg-purple-500/20 dark:bg-purple-500/10 blur-3xl pointer-events-none transition-all duration-700"></div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-40 w-full px-4 sm:px-8 py-4">
+        <div class="max-w-7xl mx-auto glass-panel rounded-2xl px-6 py-3 flex items-center justify-between shadow-lg">
+            <!-- Brand / Logo -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-sakura-400 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                    <i class="fa-solid font-jp">ア</i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight bg-gradient-to-r from-purple-600 to-pink-500 dark:from-purple-400 dark:to-pink-300 bg-clip-text text-transparent">AnimeVault</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Character Showcase & Soundboard</p>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="flex items-center gap-3">
+                <!-- BGM Toggle Button -->
+                <button id="bgm-btn" onclick="toggleBGM()" class="glass-card px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 hover:border-purple-400 transition-all" title="Toggle Ambient BGM">
+                    <i id="bgm-icon" class="fa-solid fa-compact-disc text-purple-500 dark:text-purple-400 text-sm"></i>
+                    <span id="bgm-text" class="hidden sm:inline">BGM: Off</span>
+                </button>
+
+                <!-- Theme Switcher -->
+                <button onclick="toggleTheme()" class="glass-card p-2.5 rounded-xl text-slate-700 dark:text-slate-200 hover:text-purple-500 dark:hover:text-purple-400 transition-colors" title="Switch Theme">
+                    <i id="theme-icon" class="fa-solid fa-moon text-base"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-6 space-y-8">
+
+        <!-- Character Selection Tabs -->
+        <section class="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <button onclick="switchCharacter('rimuru')" id="tab-rimuru" class="char-tab active glass-panel px-6 py-3 rounded-2xl flex items-center gap-3 font-semibold text-sm transition-all border-sky-400/50 shadow-md">
+                <span class="w-3 h-3 rounded-full bg-sky-400 animate-pulse"></span>
+                <i class="fa-solid fa-droplet text-sky-400"></i>
+                Rimuru Tempest
+            </button>
+            <button onclick="switchCharacter('elaina')" id="tab-elaina" class="char-tab glass-panel px-6 py-3 rounded-2xl flex items-center gap-3 font-semibold text-sm transition-all opacity-70 hover:opacity-100">
+                <span class="w-3 h-3 rounded-full bg-purple-400 opacity-0 transition-opacity"></span>
+                <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                Elaina (Wandering Witch)
+            </button>
+        </section>
+
+        <!-- Character Detail Showcase Area -->
+        <section id="character-showcase" class="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-all duration-500">
+            <!-- Background Aura Glow -->
+            <div id="char-aura" class="absolute -right-20 -bottom-20 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-sky-500/20 blur-3xl animate-aura pointer-events-none"></div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <!-- Character Portrait Column -->
+                <div class="lg:col-span-5 flex flex-col items-center justify-center relative">
+                    <div class="relative group">
+                        <!-- Image Frame Glass Glow -->
+                        <div id="image-frame-glow" class="absolute -inset-1 rounded-3xl bg-gradient-to-r from-sky-400 to-indigo-500 opacity-60 blur-xl group-hover:opacity-100 transition duration-500"></div>
+                        
+                        <!-- Portrait Image Container -->
+                        <div class="relative w-64 h-80 sm:w-72 sm:h-96 rounded-3xl overflow-hidden glass-card p-2">
+                            <img id="char-img" src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80" alt="Character Portrait" class="w-full h-full object-cover rounded-2xl transition-transform duration-700 hover:scale-105" onerror="this.src='https://placehold.co/400x500/1e293b/38bdf8?text=Anime+Character'">
+                        </div>
+
+                        <!-- Status Badge Overlay -->
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 glass-panel px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase text-sky-400 flex items-center gap-2 border-sky-400/30">
+                            <i class="fa-solid fa-crown"></i>
+                            <span id="char-title-badge">Demon Lord</span>
+                        </div>
+                    </div>
+
+                    <!-- Voice Quote Trigger Button -->
+                    <button id="voice-quote-btn" onclick="playCurrentVoiceQuote()" class="mt-6 px-5 py-2.5 rounded-xl glass-card font-semibold text-xs sm:text-sm flex items-center gap-2.5 hover:scale-105 active:scale-95 transition-all text-sky-400 border-sky-400/30">
+                        <i class="fa-solid fa-circle-play text-lg"></i>
+                        <span id="voice-btn-text">Dengarkan Quote Suara</span>
+                    </button>
+                </div>
+
+                <!-- Character Bio & Stats Column -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Title & Header Info -->
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <span id="char-jp-name" class="font-jp text-sm px-3 py-1 rounded-lg bg-slate-200/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 font-semibold">リムル＝テンペスト</span>
+                            <span id="char-anime-origin" class="text-xs font-semibold text-purple-500 dark:text-purple-400">That Time I Got Reincarnated as a Slime</span>
+                        </div>
+                        <h2 id="char-name" class="text-3xl sm:text-5xl font-extrabold mt-2 tracking-tight bg-gradient-to-r from-sky-400 to-indigo-600 dark:from-sky-300 dark:to-indigo-400 bg-clip-text text-transparent">
+                            Rimuru Tempest
+                        </h2>
+                        <p id="char-desc" class="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-3 leading-relaxed">
+                            Pendiri dan Raja dari Disaster Federation / Jura Tempest Federation. Karakter serba bisa yang kuat dengan berbagai ultimate skill serta kepribadian yang bijaksana dan ramah.
+                        </p>
+                    </div>
+
+                    <!-- Quick Stats Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-sky-400">
+                            <p class="text-xs text-slate-400 font-medium">Race / Spesies</p>
+                            <p id="stat-race" class="text-sm font-bold mt-0.5">Ultimate Slime</p>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-indigo-400">
+                            <p class="text-xs text-slate-400 font-medium">Role / Peran</p>
+                            <p id="stat-role" class="text-sm font-bold mt-0.5">Demon Lord</p>
+                        </div>
+                        <div class="glass-card p-3 rounded-xl border-l-4 border-purple-400 col-span-2 sm:col-span-1">
+                            <p class="text-xs text-slate-400 font-medium">Elemen Utama</p>
+                            <p id="stat-element" class="text-sm font-bold mt-0.5">Void / Chaos</p>
+                        </div>
+                    </div>
+
+                    <!-- Attribute Power Bars -->
+                    <div class="space-y-3">
+                        <h3 class="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fa-solid fa-chart-simple text-purple-400"></i> Statistik Atribut
+                        </h3>
+                        
+                        <div class="space-y-2.5">
+                            <!-- Magic Power -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>Magic / Mana Power</span>
+                                    <span id="val-magic" class="text-sky-400">98%</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                                    <div id="bar-magic" class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-1000" style="width: 98%;"></div>
+                                </div>
+                            </div>
+                            <!-- Agility -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>Speed & Agility</span>
+                                    <span id="val-speed" class="text-sky-400">92%</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                                    <div id="bar-speed" class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-1000" style="width: 92%;"></div>
+                                </div>
+                            </div>
+                            <!-- Intelligence -->
+                            <div>
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span>Intelligence & Skill Control</span>
+                                    <span id="val-intel" class="text-sky-400">99%</span>
+                                </div>
+                                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                                    <div id="bar-intel" class="h-full rounded-full bg-gradient-to-r from-sky-400 to-indigo-500 transition-all duration-1000" style="width: 99%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Skills Tags -->
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Signature Skills</p>
+                        <div id="skill-tags" class="flex flex-wrap gap-2">
+                            <!-- Injected dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Interactive Soundboard & Quotes -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Audio Soundboard Card -->
+            <section class="lg:col-span-6 glass-panel rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-volume-high text-purple-400"></i>
+                            Soundboard & Sound Effects
+                        </h3>
+                        <span class="text-xs px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">Interactive</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Klik tombol di bawah untuk memutar efek suara khas & frasa anime singkat secara interaktif.</p>
+
+                    <!-- Soundboard Grid Buttons -->
+                    <div id="soundboard-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <!-- Sound buttons injected dynamically -->
+                    </div>
+                </div>
+
+                <!-- Mini Equalizer / Visualizer Indicator -->
+                <div class="mt-6 pt-4 border-t border-slate-200/30 dark:border-slate-800/50 flex items-center justify-between">
+                    <span id="sound-status" class="text-xs text-slate-500 dark:text-slate-400 italic">Siap memutar audio...</span>
+                    <div class="flex items-end gap-1 h-4">
+                        <span class="w-1 bg-purple-400 rounded-full animate-bounce h-2"></span>
+                        <span class="w-1 bg-pink-400 rounded-full animate-bounce h-4" style="animation-delay: 0.1s"></span>
+                        <span class="w-1 bg-sky-400 rounded-full animate-bounce h-3" style="animation-delay: 0.2s"></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dynamic Quote Generator Card -->
+            <section class="lg:col-span-6 glass-panel rounded-3xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg flex items-center gap-2">
+                            <i class="fa-solid fa-quote-left text-sakura-400"></i>
+                            Kutipan Bijak Anime
+                        </h3>
+                        <button onclick="generateRandomQuote()" class="text-xs px-3 py-1.5 rounded-xl glass-card font-semibold text-purple-400 hover:text-purple-300 flex items-center gap-1.5 transition-all">
+                            <i class="fa-solid fa-rotate"></i> Acak Quote
+                        </button>
+                    </div>
+
+                    <!-- Display Box Quote -->
+                    <div class="my-6 p-6 rounded-2xl bg-slate-900/10 dark:bg-slate-950/30 border border-slate-200/20 dark:border-slate-800/40 relative">
+                        <i class="fa-solid fa-quote-left text-4xl text-purple-500/20 absolute top-3 left-3"></i>
+                        <p id="quote-text" class="text-base sm:text-lg italic font-medium text-slate-700 dark:text-slate-200 relative z-10 leading-relaxed">
+                            "Jika kamu tidak melakukan apa-apa, kamu tidak akan pernah mendapatkan apa-apa."
+                        </p>
+                        <div class="mt-4 flex items-center justify-between">
+                            <span id="quote-author" class="text-xs font-bold text-purple-500 dark:text-purple-400">— Rimuru Tempest</span>
+                            <button onclick="copyQuote()" class="text-xs text-slate-400 hover:text-slate-200 transition-colors" title="Salin Quote">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-xs text-slate-400 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400"></i>
+                    <span>Tips: Klik tombol <b>"Acak Quote"</b> untuk menemukan inspirasi baru.</span>
+                </div>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-4 sm:px-8 py-8 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Anime Character Showcase Web. Crafted with <i class="fa-solid fa-heart text-pink-500"></i> using Tailwind CSS & Web Audio.</p>
+    </footer>
+
+    <script>
+        // Character Database
+        const characters = {
+            rimuru: {
+                name: "Rimuru Tempest",
+                jpName: "リムル＝テンペスト",
+                origin: "That Time I Got Reincarnated as a Slime",
+                badge: "Demon Lord",
+                img: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&auto=format&fit=crop&q=80",
+                desc: "Pendiri dan Pemimpin Agung Jura Tempest Federation. Menguasai Ultimate Skill seperti Beelzebuth & Raphael untuk melindungi teman-temannya.",
+                race: "Ultimate Slime",
+                role: "Demon Lord",
+                element: "Void / Spatial",
+                stats: { magic: 98, speed: 92, intel: 99 },
+                skills: ["Gluttonous King Beelzebuth", "Wisdom King Raphael", "Universal Thread", "Dark Flame"],
+                colorClass: "sky",
+                voiceQuote: "Siapa pun yang mengganggu kedamaian kota ini tidak akan dimaafkan!",
+                soundEffects: [
+                    { name: "Slime Bounce", soundFreq: 400, type: "sine" },
+                    { name: "Raphael Logic", soundFreq: 800, type: "triangle" },
+                    { name: "Beelzebuth Charge", soundFreq: 220, type: "sawtooth" }
+                ]
+            },
+            elaina: {
+                name: "Elaina",
+                jpName: "イレイナ",
+                origin: "Wandering Witch: The Journey of Elaina",
+                badge: "Ashen Witch",
+                img: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=600&auto=format&fit=crop&q=80",
+                desc: "Seorang penyihir muda jenius berambut perak yang berkeliling dunia. Sangat menyukai makanan manis, koin emas, dan petualangan baru.",
+                race: "Human Witch",
+                role: "Wandering Witch",
+                element: "Wind / Elemental",
+                stats: { magic: 94, speed: 88, intel: 95 },
+                skills: ["Flight Magic", "Elemental Spells", "Restoration Magic", "Broom Riding"],
+                colorClass: "purple",
+                voiceQuote: "Ya, siapakah penyihir jelita yang sedang berkelana ini? Benar, itu adalah aku!",
+                soundEffects: [
+                    { name: "Magic Broom", soundFreq: 600, type: "sine" },
+                    { name: "Spell Cast", soundFreq: 950, type: "sine" },
+                    { name: "Coin Chime", soundFreq: 1200, type: "triangle" }
+                ]
+            }
+        };
+
+        // Quote Collection
+        const quotesList = [
+            { text: "Jika kamu tidak melakukan apa-apa, kamu tidak akan pernah mendapatkan apa-apa.", author: "Rimuru Tempest" },
+            { text: "Ya, siapakah penyihir jelita yang sedang berkelana ini? Benar, itu aku!", author: "Elaina" },
+            { text: "Jangan pernah menilai seseorang hanya dari penampilan luarnya saja.", author: "Rimuru Tempest" },
+            { text: "Dunia ini luas dan penuh dengan keajaiban yang menanti untuk dijelajahi.", author: "Elaina" },
+            { text: "Kekuasaan sejati adalah kemampuan untuk melindungi apa yang kamu cintai.", author: "Rimuru Tempest" }
+        ];
+
+        // Active State
+        let currentCharacterKey = 'rimuru';
+        let audioContext = null;
+        let isBgmPlaying = false;
+        let bgmOscillator = null;
+
+        // Theme Toggle Function
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById('theme-icon');
+            
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                themeIcon.className = 'fa-solid fa-sun text-amber-500';
+            } else {
+                html.classList.add('dark');
+                themeIcon.className = 'fa-solid fa-moon text-slate-200';
+            }
+        }
+
+        // Switch Character Tabs Logic
+        function switchCharacter(key) {
+            if (!characters[key]) return;
+            currentCharacterKey = key;
+            const char = characters[key];
+
+            // Update Tab Active Styles
+            document.querySelectorAll('.char-tab').forEach(tab => {
+                tab.classList.remove('active', 'border-sky-400/50', 'border-purple-400/50', 'shadow-md');
+                tab.classList.add('opacity-70');
+            });
+
+            const activeTab = document.getElementById(`tab-${key}`);
+            activeTab.classList.add('active', 'shadow-md', `border-${char.colorClass}-400/50`);
+            activeTab.classList.remove('opacity-70');
+
+            // Update Visual Elements with dynamic values
+            document.getElementById('char-img').src = char.img;
+            document.getElementById('char-name').innerText = char.name;
+            document.getElementById('char-jp-name').innerText = char.jpName;
+            document.getElementById('char-anime-origin').innerText = char.origin;
+            document.getElementById('char-title-badge').innerText = char.badge;
+            document.getElementById('char-desc').innerText = char.desc;
+
+            // Update Quick Stats
+            document.getElementById('stat-race').innerText = char.race;
+            document.getElementById('stat-role').innerText = char.role;
+            document.getElementById('stat-element').innerText = char.element;
+
+            // Update Attribute Progress Bars
+            document.getElementById('val-magic').innerText = char.stats.magic + '%';
+            document.getElementById('bar-magic').style.width = char.stats.magic + '%';
+
+            document.getElementById('val-speed').innerText = char.stats.speed + '%';
+            document.getElementById('bar-speed').style.width = char.stats.speed + '%';
+
+            document.getElementById('val-intel').innerText = char.stats.intel + '%';
+            document.getElementById('bar-intel').style.width = char.stats.intel + '%';
+
+            // Render Skill Badges
+            const skillContainer = document.getElementById('skill-tags');
+            skillContainer.innerHTML = '';
+            char.skills.forEach(skill => {
+                const badge = document.createElement('span');
+                badge.className = `text-xs px-3 py-1 rounded-xl glass-card font-semibold text-${char.colorClass}-400 border border-${char.colorClass}-400/20`;
+                badge.innerText = skill;
+                skillContainer.appendChild(badge);
+            });
+
+            // Update Soundboard Buttons
+            renderSoundboard(char.soundEffects);
+
+            // Update Ambient Glows
+            const aura = document.getElementById('char-aura');
+            aura.className = `absolute -right-20 -bottom-20 w-80 h-80 sm:w-96 sm:h-96 rounded-full bg-${char.colorClass}-500/20 blur-3xl animate-aura pointer-events-none`;
+        }
+
+        // Initialize Web Audio Context safely
+        function getAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            return audioContext;
+        }
+
+        // Render Soundboard Buttons
+        function renderSoundboard(effects) {
+            const grid = document.getElementById('soundboard-grid');
+            grid.innerHTML = '';
+
+            effects.forEach((effect, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "glass-card p-3 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-purple-400 active:scale-95 transition-all text-xs font-semibold";
+                btn.onclick = () => playSynthSound(effect.soundFreq, effect.type, effect.name);
+                btn.innerHTML = `
+                    <i class="fa-solid fa-bolt text-purple-400 text-base"></i>
+                    <span>${effect.name}</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        // Play Synthesized SFX using Web Audio API
+        function playSynthSound(freq, type, soundName) {
+            try {
+                const ctx = getAudioContext();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = type || 'sine';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(freq / 2, ctx.currentTime + 0.4);
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+
+                document.getElementById('sound-status').innerText = `Memutar SFX: "${soundName}"`;
+            } catch (e) {
+                console.error("Web Audio error:", e);
+            }
+        }
+
+        // Speech Synthesis Voice Quote
+        function playCurrentVoiceQuote() {
+            const char = characters[currentCharacterKey];
+            const text = char.voiceQuote;
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Stop active speech
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.95;
+                utterance.pitch = currentCharacterKey === 'elaina' ? 1.2 : 1.0;
+
+                const btnText = document.getElementById('voice-btn-text');
+                btnText.innerText = "Memutar...";
+
+                utterance.onend = () => {
+                    btnText.innerText = "Dengarkan Quote Suara";
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Browser kamu belum mendukung Speech Synthesis API.");
+            }
+        }
+
+        // Ambient Background Chiptune BGM Generator
+        function toggleBGM() {
+            const btnText = document.getElementById('bgm-text');
+            const btnIcon = document.getElementById('bgm-icon');
+
+            if (!isBgmPlaying) {
+                const ctx = getAudioContext();
+                bgmOscillator = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                bgmOscillator.type = 'triangle';
+                bgmOscillator.frequency.setValueAtTime(329.63, ctx.currentTime); // E4 note
+
+                gain.gain.setValueAtTime(0.05, ctx.currentTime);
+
+                bgmOscillator.connect(gain);
+                gain.connect(ctx.destination);
+
+                bgmOscillator.start();
+                isBgmPlaying = true;
+
+                btnText.innerText = "BGM: On";
+                btnIcon.classList.add('animate-spin');
+            } else {
+                if (bgmOscillator) {
+                    bgmOscillator.stop();
+                    bgmOscillator.disconnect();
+                }
+                isBgmPlaying = false;
+                btnText.innerText = "BGM: Off";
+                btnIcon.classList.remove('animate-spin');
+            }
+        }
+
+        // Sakura Petals Floating Animation Generator
+        function createSakuraPetals() {
+            const container = document.getElementById('sakura-container');
+            const petalCount = 12;
+
+            for (let i = 0; i < petalCount; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'sakura-petal';
+                
+                // Randomize sizes & position
+                const size = Math.random() * 12 + 8;
+                const left = Math.random() * 100;
+                const duration = Math.random() * 8 + 6;
+                const delay = Math.random() * 5;
+
+                petal.style.width = `${size}px`;
+                petal.style.height = `${size * 1.4}px`;
+                petal.style.left = `${left}%`;
+                petal.style.backgroundColor = 'rgba(247, 131, 172, 0.6)';
+                petal.style.borderRadius = '10px 0px 10px 0px';
+                petal.style.animationDuration = `${duration}s`;
+                petal.style.animationDelay = `${delay}s`;
+
+                container.appendChild(petal);
+            }
+        }
+
+        // Quote Generator Functions
+        function generateRandomQuote() {
+            const randomIndex = Math.floor(Math.random() * quotesList.length);
+            const q = quotesList[randomIndex];
+            document.getElementById('quote-text').innerText = `"${q.text}"`;
+            document.getElementById('quote-author').innerText = `— ${q.author}`;
+        }
+
+        // Copy Quote to Clipboard
+        function copyQuote() {
+            const text = document.getElementById('quote-text').innerText;
+            const author = document.getElementById('quote-author').innerText;
+            const fullQuote = `${text} ${author}`;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = fullQuote;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            document.getElementById('sound-status').innerText = 'Quote telah disalin ke clipboard!';
+        }
+
+        // On Window Load Initialization
+        window.onload = function() {
+            createSakuraPetals();
+            switchCharacter('rimuru');
+        };
+    </script>
+</body>
+</html>
